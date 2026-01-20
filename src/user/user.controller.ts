@@ -1,10 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/require-await */
+import { Body, Controller, Post } from '@nestjs/common';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Controller('user')
 export class UserController {
-  @Get()
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async getAllUsers() {
-    return JSON.stringify({ test: 'abc' });
+  @Post()
+  async createUser(@Body() createUser: CreateUserDto) {
+    return {
+      ...createUser,
+      password: undefined,
+    };
   }
 }
