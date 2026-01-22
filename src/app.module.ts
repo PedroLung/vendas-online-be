@@ -15,6 +15,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       password: process.env.DB_PASSWORD,
       port: Number(process.env.DB_PORT), // como a porta espera um inteiro e o env sempre retorna uma string é necessário colocar o Number()
       username: process.env.DB_USERNAME,
+      synchronize: true,
+      entities: [`${__dirname}/**/*.entity{.js,.ts}`],
     }),
     UserModule,
   ],
