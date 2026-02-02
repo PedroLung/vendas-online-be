@@ -7,28 +7,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'users' })
-export class UserEntity {
+@Entity({ name: 'state' })
+export class StateEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column({ name: 'name', nullable: false })
   name: string;
-
-  @Column({ name: 'email', unique: true, nullable: false })
-  email: string;
-
-  @Column({ name: 'cpf', unique: true, nullable: false })
-  cpf: string;
-
-  @Column({ name: 'type_user', nullable: false })
-  typeUser: number;
-
-  @Column({ name: 'phone', nullable: false })
-  phone: string;
-
-  @Column({ name: 'password', nullable: false })
-  password: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
