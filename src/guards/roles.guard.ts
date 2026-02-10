@@ -1,21 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserType } from 'src/user/enum/user-type.enum';
-import { ROLES_KEY } from 'src/decorators/roles.decorator';
 import { JwtService } from '@nestjs/jwt';
+import { ROLES_KEY } from '../decorators/roles.decorator';
+import { UserType } from '../user/enum/user-type.enum';
 import { LoginPayload } from 'src/auth/dto/loginPayload.dto';
-
-interface RequestWithHeaders {
-  headers: {
-    authorization?: string;
-  };
-}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -28,35 +25,25 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<RequestWithHeaders>();
-    const authorization = request.headers.authorization;
+    const { authorization } = context.switchToHttp().getRequest().headers;
 
     if (!authorization) {
       return false;
     }
 
-    const token: string = authorization.replace('Bearer ', '').trim();
+    const token = authorization.replace('Bearer ', '').trim();
 
-    if (!token) {
+    const loginPayload: LoginPayload | undefined = await this.jwtService
+      .verifyAsync(token, {
+        secret: process.env.JWT_SECRET,
+      })
+      .catch(() => undefined);
+
+    if (!loginPayload) {
       return false;
     }
 
-    try {
-      const loginPayload = await this.jwtService.verifyAsync<LoginPayload>(
-        token,
-        { secret: process.env.JWT_SECRET || '' },
-      );
-
-      if (!loginPayload || !loginPayload.typeUser) {
-        return false;
-      }
-
-      const userType = loginPayload.typeUser as UserType;
-
-      return requiredRoles.some((role) => role === userType);
-    } catch (error) {
-      console.error('Erro ao validar token:', error);
-      return false;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    return requiredRoles.some((role) => role === loginPayload.typeUser);
   }
 }
