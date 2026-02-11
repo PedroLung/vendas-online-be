@@ -8,11 +8,13 @@ import {
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { ReturnLogin } from './dto/returnLogin.dto';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @UsePipes(ValidationPipe)
   @Post()
   async login(@Body() loginDto: LoginDto): Promise<ReturnLogin> {

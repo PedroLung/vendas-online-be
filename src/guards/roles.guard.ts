@@ -1,49 +1,32 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { UserType } from '../user/enum/user-type.enum';
-import { LoginPayload } from 'src/auth/dto/loginPayload.dto';
+import { Request } from 'express';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<UserType[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredRoles) {
+    if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
 
-    const { authorization } = context.switchToHttp().getRequest().headers;
+    const request = context.switchToHttp().getRequest<Request>();
+    const user = request.user;
 
-    if (!authorization) {
+    if (!user) {
       return false;
     }
 
-    const token = authorization.replace('Bearer ', '').trim();
+    const hasRole = requiredRoles.some((role) => role === user.typeUser); // DEBUG
 
-    const loginPayload: LoginPayload | undefined = await this.jwtService
-      .verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
-      })
-      .catch(() => undefined);
-
-    if (!loginPayload) {
-      return false;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    return requiredRoles.some((role) => role === loginPayload.typeUser);
+    return hasRole;
   }
 }

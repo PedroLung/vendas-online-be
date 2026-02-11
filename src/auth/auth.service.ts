@@ -19,10 +19,6 @@ export class AuthService {
       loginDto.email,
     );
 
-    if (!user) {
-      throw new NotFoundException('Email ou senha inválidos');
-    }
-
     const isMatch = await compare(loginDto.password, user?.password);
 
     if (!user || !isMatch) {

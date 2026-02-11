@@ -1,17 +1,26 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { authorizationToLoginPayload } from 'src/utils/base-64-converter';
+import {
+  createParamDecorator,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { LoginPayload } from 'src/auth/dto/loginPayload.dto';
+
+declare module 'express' {
+  interface Request {
+    user?: LoginPayload;
+  }
+}
 
 export const UserId = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
-    const { authorization } = ctx.switchToHttp().getRequest().headers;
+  (data: unknown, ctx: ExecutionContext): number => {
+    const request = ctx.switchToHttp().getRequest<Request>();
+    const user = request.user;
 
-    const loginPayLoad = authorizationToLoginPayload(authorization);
+    if (!user) {
+      throw new UnauthorizedException('Usuario não encontrado na requisição');
+    }
 
-    console.log('Authorization: ', authorization);
-
-    return loginPayLoad?.id;
+    return user.id;
   },
 );
