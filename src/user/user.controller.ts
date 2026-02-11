@@ -11,6 +11,7 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UserService } from './user.service';
 import { UserEntity } from './entity/user.entity';
 import { ReturnUserDto } from './dto/returnUser.dto';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller('users')
 export class UserController {
@@ -32,6 +33,7 @@ export class UserController {
     );
   }
 
+  @Public()
   @UsePipes(ValidationPipe)
   @Post()
   async createUser(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
